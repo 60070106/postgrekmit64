@@ -135,6 +135,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'EXCEPTION_HANDLER': 'api.exception_handler.exception_handler',
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
