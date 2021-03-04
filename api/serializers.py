@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Image
+from .models import UserImage
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import datetime
 
+import base64
+from PIL import Image
+from io import BytesIO
 
 
 User = get_user_model()
@@ -13,7 +16,7 @@ User = get_user_model()
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Image
+        model = UserImage
         fields = ['imgpath',]
 
 class UserSerializer(serializers.Serializer):
@@ -52,11 +55,16 @@ class RegisterSerializer(serializers.ModelSerializer):
             phone=validated_data['last_name'],
         )
 
-        image = Image.objects.create(user=user, imgpath=validated_data['image'][0]['imgpath'])
+        userimage = UserImage.objects.create(user=user, imgpath=validated_data['image'][0]['imgpath'])
 
         user.set_password(validated_data['password'])
 
-        image.save()
+
+        data = validated_data['image'][0]['imgpath']
+        im = Image.open(BytesIO(base64.b64decode(data)))
+        im.save(validated_data['username']+'.png', 'PNG')
+
+        userimage.save()
         user.save()
 
         return user

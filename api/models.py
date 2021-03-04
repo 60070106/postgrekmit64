@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     phone = models.CharField(max_length=12, default='')
 
-class Image(models.Model):
+class UserImage(models.Model):
     user = models.ForeignKey(User, related_name='image', on_delete=models.CASCADE, default='')
     imgpath = models.TextField(max_length=None)
 
