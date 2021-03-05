@@ -79,38 +79,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         userimage.save()
         user.save()
 
-        # url = "http://127.0.0.1:8000/api/login/"
-        # myobj = {
-        #     "username" : user.username,
-        #     "password" : validated_data['password']
-        # }
-
-        # response = requests.post(url, data = myobj)
-        # print(response.text)
-
         return user
 
     def to_representation(self, instance):
-        # test = super(RegisterSerializer, self).to_representation(instance)
-        ret = super().to_representation(instance)
-        test = super().instance
-
-        print(self.instance.password)
-
-        # ret['username'] = ret['username'].lower()
-        
-        return ret
-
-        # url = "http://127.0.0.1:8000/api/login/"
-        # myobj = {
-        #     "username" : data['username'],
-        #     "password" : data['password']
-        # }
-        # response = requests.post(url, data = myobj)
-
-        
-
-        # return {"success" : True}
+        return {"success" : True}
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
