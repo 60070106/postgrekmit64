@@ -9,6 +9,12 @@ import datetime
 import base64
 from PIL import Image
 from io import BytesIO
+from pathlib import Path
+
+import shutil
+import face_recognition
+import requests
+from django.conf import settings
 
 
 User = get_user_model()
@@ -41,11 +47,22 @@ class RegisterSerializer(serializers.ModelSerializer):
             'last_name': {'required': True}
         }
 
-    # def validate(self, attrs):
-    #     if attrs['password'] != attrs['password2']:
-    #         raise serializers.ValidationError({"password": "Password fields didn't match."})
+    def validate(self, attrs):
+        imgdata = attrs['image'][0]['imgpath']
+        im = Image.open(BytesIO(base64.b64decode(imgdata)))
 
-    #     return attrs
+        Path('images/'+attrs['username']).mkdir(parents=True, exist_ok=True)
+        im.save('images/'+attrs['username']+'/'+attrs['username']+'_1.png', 'PNG')
+
+        save_path = "%s"%(settings.BASE_DIR)+"\images\\"+attrs['username']+'\\'+attrs['username']+'_1.png'
+        send_to_check_Pic = face_recognition.load_image_file(save_path) 
+        send_to_check_face_encoding = face_recognition.face_encodings(send_to_check_Pic) 
+
+        if len(send_to_check_face_encoding) > 0:
+            return attrs
+        else:
+            shutil.rmtree("%s"%(settings.BASE_DIR)+"\images\\"+attrs['username'])
+            raise serializers.ValidationError({"detail": "didn't find any facial."})
 
     def create(self, validated_data):
         user = User.objects.create(
@@ -59,15 +76,41 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         user.set_password(validated_data['password'])
 
-
-        data = validated_data['image'][0]['imgpath']
-        im = Image.open(BytesIO(base64.b64decode(data)))
-        im.save(validated_data['username']+'.png', 'PNG')
-
         userimage.save()
         user.save()
 
+        # url = "http://127.0.0.1:8000/api/login/"
+        # myobj = {
+        #     "username" : user.username,
+        #     "password" : validated_data['password']
+        # }
+
+        # response = requests.post(url, data = myobj)
+        # print(response.text)
+
         return user
+
+    def to_representation(self, instance):
+        # test = super(RegisterSerializer, self).to_representation(instance)
+        ret = super().to_representation(instance)
+        test = super().instance
+
+        print(self.instance.password)
+
+        # ret['username'] = ret['username'].lower()
+        
+        return ret
+
+        # url = "http://127.0.0.1:8000/api/login/"
+        # myobj = {
+        #     "username" : data['username'],
+        #     "password" : data['password']
+        # }
+        # response = requests.post(url, data = myobj)
+
+        
+
+        # return {"success" : True}
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

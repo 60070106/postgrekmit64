@@ -13,6 +13,11 @@ django-cors-headers = "*"
 gunicorn = "*"
 django-heroku = "*"
 pillow = "*"
+cmake = "*"
+dlib = "*"
+opencv-python = "*"
+face-recognition = "*"
+requests = "*"
 
 [dev-packages]
 

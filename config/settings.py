@@ -138,11 +138,11 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'api.exception_handler.custom_exception_handler',
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-
 ALLOWED_HOSTS=['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 django_heroku.settings(locals())
+
+# print("base dir path", BASE_DIR)
