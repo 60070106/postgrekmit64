@@ -18,6 +18,7 @@ dlib = "*"
 opencv-python = "*"
 face-recognition = "*"
 requests = "*"
+mysqlclient = {path = "C:/Users/Cloudboy/Downloads/mysqlclient-1.4.6-cp39-cp39-win_amd64.whl"}
 
 [dev-packages]
 
