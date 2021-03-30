@@ -26,10 +26,24 @@ class UserEvent(models.Model):
     event_name = models.CharField(max_length=255, default='', unique=True)
     event_image = models.TextField(max_length=None)
     detail = models.TextField(max_length=None)
-    approved_by = models.CharField(max_length=255, default='none')
+    is_check = models.BooleanField(default=False)
+    appoved_by_project_advisor = models.BooleanField(default=False)
+    appoved_by_student_president = models.BooleanField(default=False)
+    appoved_by_student_advisor = models.BooleanField(default=False)    
 
     class Meta:
         ordering = ['organizer']
+
+class EventAppovedLog(models.Model):
+    event = models.ForeignKey(UserEvent, related_name='event', on_delete=models.CASCADE, default='')
+    user = models.ForeignKey(User, related_name='approver', on_delete=models.CASCADE,  default='')
+    role = models.TextField(max_length=255, default='')
+    agreed = models.BooleanField(default=False)
+    detail = models.TextField(max_length=None)
+    time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['event']
 
 
 class UserRegisterEvent(models.Model):
@@ -47,4 +61,9 @@ class EventHistory(models.Model):
     class Meta:
         ordering = ['event']
 
-    
+class EventDocument(models.Model):
+    event = models.ForeignKey(UserEvent, related_name='event_document', on_delete=models.CASCADE, default='')
+    data = models.TextField(max_length=None)
+
+    class Meta:
+        ordering = []

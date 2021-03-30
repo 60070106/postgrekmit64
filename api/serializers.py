@@ -125,23 +125,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         # return "eiei"
 
     def to_representation(self, instance):
-
-        # data = super(RegisterSerializer, self).to_representation(instance)
-        # print(instance.password)
-
-        # url = 'http://127.0.0.1:8000/api/login/'
-        # myobj = {
-        #     'username': self.instance.username,
-        #     'password': self.instance.email
-        # }
-
-        # temp_user = User.objects.get(username=instance.username)
-        # temp_user.email = ''
-        # temp_user.save()
-
-        # response = requests.post(url, myobj)
-
-        # return json.loads(response.text)
         return {
             "success" : True
         }
@@ -164,21 +147,21 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             "user": serializer.data
         }
 
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventDocument
+        fields = ['data', ]
 
-# class EventImageSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = CheckUserEventImage
-#         fields = ['imgpath',]
 
 class EventSerializer(serializers.ModelSerializer):
     imgpath = serializers.CharField(max_length=None)
     imgevent = serializers.CharField(max_length=None)
+    documents = DocumentSerializer(many=True)
 
     class Meta:
         model = UserEvent
         fields = ['organizer', 'location', 'duration',
-                  'event_name', 'detail', 'imgpath', 'imgevent']
+                  'event_name', 'detail', 'imgpath', 'imgevent', 'documents']
 
     def validate(self, attrs):
         amount_pic = 1
@@ -242,18 +225,18 @@ class EventSerializer(serializers.ModelSerializer):
                     os.remove("%s" % (settings.BASE_DIR)+"\\images\\" +
                               attrs['organizer']+"\\"+save_time+'.png')
                     raise serializers.ValidationError({
-                        "detail": "Your identity is matching less than 80% \nyour matching :" + "%.2f" % (percentage[0]) + "%"
+                        "error": "Your identity is matching less than 80% \nyour matching :" + "%.2f" % (percentage[0]) + "%"
                     })
 
             else:
                 os.remove("%s" % (settings.BASE_DIR)+"\\images\\" +
                           attrs['organizer']+"\\"+save_time+'.png')
                 raise serializers.ValidationError(
-                    {"detail": "didn't find any facial."})
+                    {"error": "didn't find any facial."})
 
         except User.DoesNotExist:
             raise serializers.ValidationError(
-                {"detail": "didn't find your user account."})
+                {"error": "didn't find your user account."})
 
     def create(self, validated_data):
         user = User.objects.get(username=validated_data['organizer'])
@@ -270,6 +253,12 @@ class EventSerializer(serializers.ModelSerializer):
         print(validated_data['percentage'])
 
         event.save()
+
+        for item in validated_data['documents']:
+            doc = EventDocument.objects.create(
+                event = event,
+                data = item['data'])
+            doc.save()
 
         return event
 
