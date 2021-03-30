@@ -458,11 +458,48 @@ class EventCheckSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return {"success": True}
 
-# class GetAllEventSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserEvent
+class ApproveEventSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(max_length=255)
+    approver = serializers.CharField(max_length=255)
 
-#     def to_representation(self, instance):
-#         all_event = UserEvent.objects.all()
-#         print(all_event)
-#         return {"success" : all_event}
+    class Meta:
+        model = EventAppovedLog
+        fields = ['agreed', 'detail', 'event_name', 'approver']
+
+    # def validate(self, attrs):
+    #     event = UserEvent.objects.get(event_name=attrs["event_name"])
+    #     user = User.objects.get(username=attrs["username"])
+
+    #     try:
+    #         UserRegisterEvent.objects.get(event_id=event.id, user_id=user.id)
+    #         raise serializers.ValidationError(
+    #             {"detail": "This account already registered"})
+
+    #     except UserRegisterEvent.DoesNotExist:
+    #         return attrs
+
+    def create(self, validated_data):
+        event = UserEvent.objects.get(event_name=validated_data["event_name"])
+        user = User.objects.get(username=validated_data["approver"])
+
+        # detail = ""
+
+        # if (validated_data["detail"] != ""):
+        #     detail = validated_data["detail"]
+
+
+        eventlog = EventAppovedLog.objects.create(
+            event=event,
+            user=user,
+            agreed=validated_data["agreed"],
+            detail=validated_data["detail"],
+        )
+        eventlog.save()
+        event.approved_by = user.username
+        event.is_approved = validated_data["agreed"]
+        event.save()
+
+        return eventlog
+
+    def to_representation(self, instance):
+        return {"success": True}

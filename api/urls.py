@@ -13,7 +13,8 @@ urlpatterns = [
     path('event/camp/register/', RegisterEvent.as_view(), name='camp_register'),
     path('event/camp/people/', GetEventPeople.as_view(), name='camp_people'),
     path('event/camp/attendance/', GetEventAvaliableCheckin.as_view(), name='camp_attendance'),
-    path('event/camp/check/', EventCheckView.as_view(), name='camp_checkin')
+    path('event/camp/check/', EventCheckView.as_view(), name='camp_checkin'),
+    path('event/approver/check/', EventApproverView.as_view(), name='approver_event')
 ]
 
 # GetAllEventView

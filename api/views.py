@@ -219,3 +219,8 @@ class EventCheckView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = EventCheckSerializer
+
+class EventApproverView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = ApproveEventSerializer
