@@ -303,6 +303,7 @@ class EventRegisterSerializer(serializers.ModelSerializer):
 
 
 class EventCheckSerializer(serializers.ModelSerializer):
+    #too long
     imgpath = serializers.CharField(max_length=None)
     event_name = serializers.CharField(max_length=255)
     username = serializers.CharField(max_length=255)
