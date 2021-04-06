@@ -61,6 +61,8 @@ class GetAllEventView(APIView):
 
                 document_lst.append(document_dict)
 
+            document_log = EventAppovedLog.objects.filter(event=event).latest('time')
+            item['fields']['approved_detail'] = document_log.detail
 
             item['fields']['documents'] = document_lst
 
@@ -224,3 +226,27 @@ class EventApproverView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = ApproveEventSerializer
+
+class EditEventDetail(APIView):
+    def post(self, request):
+        user = User.objects.get(username=request.data['username'])
+        event = UserEvent.objects.get(user= user, event_name=request.data['event_name'])
+
+        event.event_name = request.data['eventname']
+        event.duration = request.data['duration']
+        event.location = request.data['location']
+        event.detail = request.data['detail']
+        event.event_image = request.data['event_image']
+        event.save()
+
+        EventDocument.objects.filter(event= event).delete()
+
+        for item in request.data['documents']:
+            event_document = EventDocument.objects.create(
+                event= event,
+                data= item['data']
+            )
+            event_document.save()
+        
+
+        return Response({'success': True}, content_type='application/json; charset=utf-8')
