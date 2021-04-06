@@ -228,6 +228,7 @@ class EventApproverView(generics.CreateAPIView):
     serializer_class = ApproveEventSerializer
 
 class EditEventDetail(APIView):
+    #edit
     def post(self, request):
         user = User.objects.get(username=request.data['username'])
         event = UserEvent.objects.get(user= user, event_name=request.data['event_name'])
