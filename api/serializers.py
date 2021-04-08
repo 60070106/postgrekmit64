@@ -47,10 +47,11 @@ class UserSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     image = ImageSerializer(many=True)
+    repassword = serializers.CharField(max_length=None)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'phone',
+        fields = ['username', 'password', 'repassword', 'phone',
                   'first_name', 'last_name', 'image', 'email']
         extra_kwargs = {
             'first_name': {'required': True},
@@ -58,6 +59,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
+
+        if(attrs['password'] != attrs['repassword']):
+            return serializers.ValidationError({"detail": "your password and repassword field didn't match."})
+
         imgdata = attrs['image'][0]['imgpath']
         im = Image.open(BytesIO(base64.b64decode(imgdata)))
 
