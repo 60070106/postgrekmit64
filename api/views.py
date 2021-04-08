@@ -61,8 +61,11 @@ class GetAllEventView(APIView):
 
                 document_lst.append(document_dict)
 
-            document_log = EventAppovedLog.objects.filter(event=event).latest('time')
-            item['fields']['approved_detail'] = document_log.detail
+            try:
+                document_log = EventAppovedLog.objects.filter(event=event).latest('time')
+                item['fields']['approved_detail'] = document_log.detail
+            except EventAppovedLog.DoesNotExist:
+                item['fields']['approved_detail'] = ""
 
             item['fields']['documents'] = document_lst
 
