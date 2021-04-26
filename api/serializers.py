@@ -145,11 +145,23 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         user = User.objects.get(username=self.user.username)
         user.last_login = datetime.datetime.now()
         user.save()
+        
+        userData = {
+            "username" : serializer.data['username'],
+            "first_name" : serializer.data['first_name'],
+            "last_name" : serializer.data['last_name'],
+            "phone" : serializer.data['phone'],
+            "email" : serializer.data['email'],
+            "image" : serializer.data['image'][0]['imgpath'],
+            "is_camper" : serializer.data['is_camper'],
+            "is_organizer" : serializer.data['is_organizer'],
+            "is_approver" : serializer.data['is_approver'],            
+        }
 
         return {
             "success": True,
             "token": data["access"],
-            "user": serializer.data
+            "user": userData
         }
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -405,6 +417,7 @@ class EventCheckSerializer(serializers.ModelSerializer):
                             userimage = UserImage.objects.create(
                                 user=user, imgpath=attrs['imgpath'])
                             userimage.save()
+
                             print("save image into device storage")
                             return attrs
 
@@ -455,7 +468,8 @@ class EventCheckSerializer(serializers.ModelSerializer):
 
         event_history = EventHistory.objects.create(
             event=regist_event,
-            status=validated_data["status"]
+            status=validated_data["status"],
+            image=validated_data["imgpath"]
         )
 
         event_history.save()

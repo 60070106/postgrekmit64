@@ -55,6 +55,7 @@ class EventHistory(models.Model):
     event = models.ForeignKey(UserRegisterEvent, related_name='event_user', on_delete=models.CASCADE, default='')
     status = models.CharField(max_length=255, default='')
     time = models.DateTimeField(auto_now_add=True)
+    image = models.TextField(max_length=None)
 
     class Meta:
         ordering = ['event']

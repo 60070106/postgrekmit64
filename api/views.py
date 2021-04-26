@@ -34,6 +34,43 @@ class EventView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = EventSerializer
 
+class GetAllEventCamperView(APIView):
+    def get(self, request):
+        SomeModel_json = serializers.serialize("json", UserEvent.objects.all())
+        data = json.loads(SomeModel_json)
+
+        data_lst = []
+        x = datetime.datetime.now()
+
+        for item in data:
+
+            if(datetime.datetime(
+                int(item['fields']['duration'][13:17]),
+                int(item['fields']['duration'][18:20]),
+                int(item['fields']['duration'][21:23])
+            ) >=
+                datetime.datetime(
+                int(x.strftime("%Y")),
+                int(x.strftime("%m")),
+                int(x.strftime("%d")))):
+
+                    organizer = serializers.serialize(
+                        "json", [User.objects.get(username=item['fields']['organizer'])])
+                    organizer_data = json.loads(organizer)
+                    # print(document_data)
+
+                    item['fields']['organizer'] = {
+                        "username": organizer_data[0]['fields']['username'],
+                        "first_name": organizer_data[0]['fields']['first_name'],
+                        "last_name": organizer_data[0]['fields']['last_name'],
+                        "email": organizer_data[0]['fields']['email'],
+                        "phone": organizer_data[0]['fields']['phone']
+                    }
+
+                    data_lst.append(item['fields'])
+
+        print(data_lst)
+        return Response(data_lst, content_type='application/json; charset=utf-8')
 
 class GetAllEventView(APIView):
     def get(self, request):
@@ -91,6 +128,7 @@ class GetEventDetail(APIView):
             "first_name": User_obj.first_name,
             "last_name": User_obj.last_name,
             "phone": User_obj.phone,
+            "email": User_obj.email
         }
 
         return Response(data, content_type='application/json; charset=utf-8')
@@ -254,3 +292,56 @@ class EditEventDetail(APIView):
         
 
         return Response({'success': True}, content_type='application/json; charset=utf-8')
+    
+class GetEventAttendanceDetail(APIView):
+    def post(self, request):
+        event = UserEvent.objects.get(event_name=request.data['event_name'])
+        eventregister = UserRegisterEvent.objects.filter(event=event)
+
+        _checkIncount = 0
+        _checkOutcount = 0
+        _checkInlst = []
+        _checkOutlst = []
+
+        for item in eventregister:
+            eventlog = EventHistory.objects.filter(event_id=item.id)
+            for log in eventlog:
+                if(log.status == 'Check in'):
+                    user = User.objects.get(id=item.user_id)
+                    chkIn_tempdata = {
+                        "time" : log.time,
+                        "user" : {
+                            "first_name" : user.first_name,
+                            "last_name" : user.last_name,
+                            "phone": user.phone,
+                            "email": user.email,
+                            "image": log.image
+                        }
+                    }
+                    _checkInlst.append(chkIn_tempdata)
+                    _checkIncount+=1
+                
+                if(log.status == 'Check out'):
+                    user = User.objects.get(id=item.user_id)
+                    chkOut_tempdata = {
+                        "time" : log.time,
+                        "user" : {
+                            "first_name" : user.first_name,
+                            "last_name" : user.last_name,
+                            "phone": user.phone,
+                            "email": user.email,
+                            "image": log.image
+                        }
+                    }
+                    _checkOutlst.append(chkOut_tempdata)
+                    _checkOutcount+=1
+                
+        
+        approveDetail = {
+            "checkInCount" : _checkIncount,
+            "checkOutCount": _checkOutcount,
+            "checkInData": _checkInlst,
+            "checkOutData": _checkOutlst
+        }
+
+        return Response(approveDetail, content_type='application/json; charset=utf-8')
