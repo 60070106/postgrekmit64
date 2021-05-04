@@ -69,7 +69,7 @@ class GetAllEventCamperView(APIView):
 
                     data_lst.append(item['fields'])
 
-        print(data_lst)
+        # print(data_lst)
         return Response(data_lst, content_type='application/json; charset=utf-8')
 
 class GetAllEventView(APIView):
@@ -298,10 +298,22 @@ class GetEventAttendanceDetail(APIView):
         event = UserEvent.objects.get(event_name=request.data['event_name'])
         eventregister = UserRegisterEvent.objects.filter(event=event)
 
+
+
         _checkIncount = 0
         _checkOutcount = 0
         _checkInlst = []
         _checkOutlst = []
+
+        _checkInperDay = 0
+        _checkOutperDay = 0
+        _checkInlstperDay = []
+        _checkOutlstperDay = []
+
+        _checkInDatelst = []
+        _checkInperDaylat = []
+        _checkOutDatelst = []
+        _checkOutperDaylat = []
 
         for item in eventregister:
             eventlog = EventHistory.objects.filter(event_id=item.id)
@@ -333,15 +345,86 @@ class GetEventAttendanceDetail(APIView):
                             "image": log.image
                         }
                     }
+
                     _checkOutlst.append(chkOut_tempdata)
                     _checkOutcount+=1
                 
+                # str(log.time)[0:10]
+        temp_chkInDate = ""
+        for checkinlog in _checkInlst:
+            if(str(checkinlog['time'])[0:10] != temp_chkInDate):
+                temp_chkInDate = str(checkinlog['time'])[0:10]
+                if(_checkInperDay == 0):
+                    _checkInperDay = 1
+                
+                if(len(_checkInlst) > 1):
+                    if(checkinlog == _checkInlst[-1] and str(checkinlog['time'])[0:10] != str(_checkInlst[-2]['time'])[0:10]):
+                        _checkInperDay = 1
+
+
+                _checkInDatelst.append(temp_chkInDate)
+                _checkInlstperDay.append(_checkInperDay)
+                _checkInperDay = 1
+
+            elif(str(checkinlog['time'])[0:10] == temp_chkInDate):
+                _checkInperDay+=1
         
+        temp_chkOutDate = ""
+        for checkoutlog in _checkOutlst:
+            if(str(checkoutlog['time'])[0:10] != temp_chkOutDate):
+                temp_chkOutDate = str(checkoutlog['time'])[0:10]
+                if(_checkOutperDay == 0):
+                    _checkOutperDay = 1
+                
+                if(len(_checkOutlst) > 1):
+                    if(checkoutlog == _checkOutlst[-1] and str(checkoutlog['time'])[0:10] != str(_checkOutlst[-2]['time'])[0:10]):
+                        _checkOutperDay = 1
+
+                _checkOutDatelst.append(temp_chkOutDate)
+                _checkOutlstperDay.append(_checkOutperDay)
+                _checkOutperDay = 1
+
+            elif(str(checkoutlog['time'])[0:10] == temp_chkOutDate):
+                _checkOutperDay+=1
+        
+        for checkindate in _checkInDatelst:
+            if(checkindate not in _checkOutDatelst):
+                _checkOutDatelst.append(checkindate)
+                _checkOutlstperDay.append(0)
+        
+        for checkoutdate in _checkOutDatelst:
+            if(checkoutdate not in _checkInDatelst):
+                _checkInDatelst.append(checkoutdate)
+                _checkInlstperDay.append(0)
+        
+        event_register = serializers.serialize("json", UserRegisterEvent.objects.filter(event_id= event.id))
+        data = json.loads(event_register)
+        user_lst = []
+        for item in data:
+            user = User.objects.get(id=item['fields']['user'])
+            user_data = {
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "phone" : user.phone
+            }
+        user_lst.append(user_data)
+
         approveDetail = {
             "checkInCount" : _checkIncount,
             "checkOutCount": _checkOutcount,
             "checkInData": _checkInlst,
-            "checkOutData": _checkOutlst
+            "checkOutData": _checkOutlst,
+            "checkInPerday": {
+                "date" : _checkInDatelst,
+                "people" : _checkInlstperDay
+                },
+            "checkOutPerday": {
+                "date" : _checkOutDatelst,
+                "people" : _checkOutlstperDay
+                },
+            "registerPeople" : user_lst,
+            "allPeopleSystem": User.objects.filter(is_camper=True).count()
+
         }
 
         return Response(approveDetail, content_type='application/json; charset=utf-8')
