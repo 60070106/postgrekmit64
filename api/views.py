@@ -407,7 +407,7 @@ class GetEventAttendanceDetail(APIView):
                 "last_name": user.last_name,
                 "phone" : user.phone
             }
-        user_lst.append(user_data)
+            user_lst.append(user_data)
 
         approveDetail = {
             "checkInCount" : _checkIncount,
