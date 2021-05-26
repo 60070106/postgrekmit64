@@ -58,7 +58,7 @@ class EventHistory(models.Model):
     image = models.TextField(max_length=None)
 
     class Meta:
-        ordering = ['event']
+        ordering = ['time']
 
 class EventDocument(models.Model):
     event = models.ForeignKey(UserEvent, related_name='event_document', on_delete=models.CASCADE, default='')

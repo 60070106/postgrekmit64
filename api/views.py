@@ -298,8 +298,6 @@ class GetEventAttendanceDetail(APIView):
         event = UserEvent.objects.get(event_name=request.data['event_name'])
         eventregister = UserRegisterEvent.objects.filter(event=event)
 
-
-
         _checkIncount = 0
         _checkOutcount = 0
         _checkInlst = []
@@ -314,6 +312,9 @@ class GetEventAttendanceDetail(APIView):
         _checkInperDaylat = []
         _checkOutDatelst = []
         _checkOutperDaylat = []
+
+        def myFunc(e):
+            return e['time']
 
         for item in eventregister:
             eventlog = EventHistory.objects.filter(event_id=item.id)
@@ -350,6 +351,10 @@ class GetEventAttendanceDetail(APIView):
                     _checkOutcount+=1
                 
                 # str(log.time)[0:10]
+
+        _checkInlst.sort(key=myFunc)
+        _checkOutlst.sort(key=myFunc)
+        
         temp_chkInDate = ""
         for checkinlog in _checkInlst:
             if(str(checkinlog['time'])[0:10] != temp_chkInDate):
@@ -397,6 +402,7 @@ class GetEventAttendanceDetail(APIView):
                 _checkInDatelst.append(checkoutdate)
                 _checkInlstperDay.append(0)
         
+        
         event_register = serializers.serialize("json", UserRegisterEvent.objects.filter(event_id= event.id))
         data = json.loads(event_register)
         user_lst = []
@@ -424,7 +430,6 @@ class GetEventAttendanceDetail(APIView):
                 },
             "registerPeople" : user_lst,
             "allPeopleSystem": User.objects.filter(is_camper=True).count()
-
         }
 
         return Response(approveDetail, content_type='application/json; charset=utf-8')
